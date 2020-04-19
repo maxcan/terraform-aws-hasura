@@ -332,7 +332,7 @@ locals {
 }
 
 resource "aws_ecs_task_definition" "hasura" {
-  family                   = "hasura"
+  family                   = var.hasura_unique_identifier
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -352,7 +352,7 @@ resource "aws_ecs_service" "hasura" {
     aws_cloudwatch_log_group.hasura,
     aws_alb_listener.hasura
   ]
-  name            = "hasura-service"
+  name            = "${var.hasura_unique_identifier}-service"
   cluster         = aws_ecs_cluster.hasura.id
   task_definition = aws_ecs_task_definition.hasura.arn
   desired_count   = var.multi_az == true ? "2" : "1"
@@ -366,7 +366,7 @@ resource "aws_ecs_service" "hasura" {
 
   load_balancer {
     target_group_arn = aws_alb_target_group.hasura.id
-    container_name   = "hasura"
+    container_name   = var.hasura_unique_identifier
     container_port   = "8080"
   }
 }
