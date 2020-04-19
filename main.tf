@@ -3,6 +3,7 @@
 # -----------------------------------------------------------------------------
 
 resource "aws_iam_service_linked_role" "ecs_service" {
+  custom_suffix    = replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")
   aws_service_name = "ecs.amazonaws.com"
   count            = var.create_iam_service_linked_role ? 1 : 0
 }
@@ -12,7 +13,7 @@ resource "aws_iam_service_linked_role" "ecs_service" {
 # -----------------------------------------------------------------------------
 
 resource "aws_acm_certificate" "hasura" {
-  domain_name       = "${var.hasura_subdomain}.${var.domain}"
+  domain_name       = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}.${var.domain}"
   validation_method = "DNS"
 
   lifecycle {
@@ -172,7 +173,7 @@ resource "aws_security_group" "hasura_rds" {
 # -----------------------------------------------------------------------------
 
 resource "aws_db_subnet_group" "hasura" {
-  name       = "hasura"
+  name       = var.hasura_subdomain,
   subnet_ids = aws_subnet.hasura_private.*.id
 }
 
@@ -215,7 +216,7 @@ resource "aws_db_instance" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_ecs_cluster" "hasura" {
-  name = "${var.ecs_cluster_name}"
+  name = var.ecs_cluster_name
 }
 
 # -----------------------------------------------------------------------------
@@ -223,7 +224,7 @@ resource "aws_ecs_cluster" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_cloudwatch_log_group" "hasura" {
-  name = "/ecs/hasura"
+  name = "/ecs/${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}"
 }
 
 # -----------------------------------------------------------------------------
@@ -238,12 +239,12 @@ data "aws_iam_policy_document" "hasura_log_publishing" {
       "logs:PutLogEventsBatch",
     ]
 
-    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/hasura:*"]
+    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}:*"]
   }
 }
 
 resource "aws_iam_policy" "hasura_log_publishing" {
-  name        = "hasura-log-pub"
+  name        = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-log-pub"
   path        = "/"
   description = "Allow publishing to cloudwach"
 
@@ -262,7 +263,7 @@ data "aws_iam_policy_document" "hasura_assume_role_policy" {
 }
 
 resource "aws_iam_role" "hasura_role" {
-  name               = "hasura-role"
+  name               = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-role"
   path               = "/system/"
   assume_role_policy = data.aws_iam_policy_document.hasura_assume_role_policy.json
 }
@@ -376,7 +377,7 @@ resource "aws_ecs_service" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_s3_bucket" "hasura" {
-  bucket        = "hasura-${var.region}-${var.hasura_subdomain}-${var.domain}"
+  bucket        = "hasura-${var.region}-${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-${var.domain}"
   acl           = "private"
   force_destroy = "true"
 }
@@ -410,7 +411,7 @@ resource "aws_s3_bucket_policy" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_alb" "hasura" {
-  name            = "hasura-alb"
+  name            = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-alb"
   subnets         = aws_subnet.hasura_public.*.id
   security_groups = [aws_security_group.hasura_alb.id]
 
@@ -426,7 +427,7 @@ resource "aws_alb" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_alb_target_group" "hasura" {
-  name        = "hasura-alb"
+  name        = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-alb"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = aws_vpc.hasura.id
@@ -460,7 +461,7 @@ resource "aws_alb_listener" "hasura" {
 
 resource "aws_route53_record" "hasura" {
   zone_id = data.aws_route53_zone.hasura.zone_id
-  name    = "${var.hasura_subdomain}.${var.domain}"
+  name    = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}.${var.domain}"
   type    = "A"
 
   alias {
