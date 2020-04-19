@@ -24,6 +24,11 @@ variable "hasura_subdomain" {
   default     = "hasura"
 }
 
+variable "hasura_unique_identifier" {
+  description = "A unique string to allow this service to co-exist with others on AWS"
+  default     = "hasura"
+}
+
 variable "app_subdomain" {
   description = "The Subdomain for your application that will make CORS requests to the hasura_subdomain"
   default     = "app"

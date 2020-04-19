@@ -12,7 +12,7 @@ resource "aws_iam_service_linked_role" "ecs_service" {
 # -----------------------------------------------------------------------------
 
 resource "aws_acm_certificate" "hasura" {
-  domain_name       = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}.${var.domain}"
+  domain_name       = "${var.hasura_subdomain}.${var.domain}"
   validation_method = "DNS"
 
   lifecycle {
@@ -172,13 +172,13 @@ resource "aws_security_group" "hasura_rds" {
 # -----------------------------------------------------------------------------
 
 resource "aws_db_subnet_group" "hasura" {
-  name       = replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")
+  name       = var.hasura_unique_identifier
   subnet_ids = aws_subnet.hasura_private.*.id
 }
 
 resource "aws_db_instance" "hasura" {
   name                   = var.rds_db_name
-  identifier             = replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")
+  identifier             = var.hasura_unique_identifier
   username               = var.rds_username
   password               = var.rds_password
   port                   = "5432"
@@ -238,12 +238,12 @@ data "aws_iam_policy_document" "hasura_log_publishing" {
       "logs:PutLogEventsBatch",
     ]
 
-    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}:*"]
+    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/${var.hasura_unique_identifier}:*"]
   }
 }
 
 resource "aws_iam_policy" "hasura_log_publishing" {
-  name        = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-log-pub"
+  name        = "${var.hasura_unique_identifier}-log-pub"
   path        = "/"
   description = "Allow publishing to cloudwach"
 
@@ -262,7 +262,7 @@ data "aws_iam_policy_document" "hasura_assume_role_policy" {
 }
 
 resource "aws_iam_role" "hasura_role" {
-  name               = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-role"
+  name               = "${var.hasura_unique_identifier}-role"
   path               = "/system/"
   assume_role_policy = data.aws_iam_policy_document.hasura_assume_role_policy.json
 }
@@ -376,7 +376,7 @@ resource "aws_ecs_service" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_s3_bucket" "hasura" {
-  bucket        = "hasura-${var.region}-${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-${var.domain}"
+  bucket        = "hasura-${var.region}-${var.hasura_unique_identifier}-${var.domain}"
   acl           = "private"
   force_destroy = "true"
 }
@@ -410,7 +410,7 @@ resource "aws_s3_bucket_policy" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_alb" "hasura" {
-  name            = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-alb"
+  name            = "${var.hasura_unique_identifier}-alb"
   subnets         = aws_subnet.hasura_public.*.id
   security_groups = [aws_security_group.hasura_alb.id]
 
@@ -426,7 +426,7 @@ resource "aws_alb" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_alb_target_group" "hasura" {
-  name        = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}-alb"
+  name        = "${var.hasura_unique_identifier}-alb"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = aws_vpc.hasura.id
@@ -460,7 +460,7 @@ resource "aws_alb_listener" "hasura" {
 
 resource "aws_route53_record" "hasura" {
   zone_id = data.aws_route53_zone.hasura.zone_id
-  name    = "${replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")}.${var.domain}"
+  name    = "${var.hasura_subdomain}.${var.domain}"
   type    = "A"
 
   alias {
