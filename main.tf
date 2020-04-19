@@ -173,7 +173,7 @@ resource "aws_security_group" "hasura_rds" {
 # -----------------------------------------------------------------------------
 
 resource "aws_db_subnet_group" "hasura" {
-  name       = var.hasura_subdomain,
+  name       = replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")
   subnet_ids = aws_subnet.hasura_private.*.id
 }
 
