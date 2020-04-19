@@ -3,7 +3,6 @@
 # -----------------------------------------------------------------------------
 
 resource "aws_iam_service_linked_role" "ecs_service" {
-  custom_suffix    = replace(var.hasura_subdomain, "/[^-A-Za-z0-9_]/g", "_")
   aws_service_name = "ecs.amazonaws.com"
   count            = var.create_iam_service_linked_role ? 1 : 0
 }
