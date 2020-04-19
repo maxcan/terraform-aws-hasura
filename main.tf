@@ -183,7 +183,7 @@ resource "aws_db_instance" "hasura" {
   password               = var.rds_password
   port                   = "5432"
   engine                 = "postgres"
-  engine_version         = "10.5"
+  engine_version         = var.rds_version
   instance_class         = var.rds_instance
   allocated_storage      = "10"
   storage_encrypted      = false
@@ -203,7 +203,7 @@ resource "aws_db_instance" "hasura" {
   copy_tags_to_snapshot       = true
   backup_retention_period     = 7
   backup_window               = "04:00-06:00"
-  final_snapshot_identifier   = "hasura"
+  final_snapshot_identifier   = var.hasura_unique_identifier
 
   lifecycle {
     prevent_destroy = true
