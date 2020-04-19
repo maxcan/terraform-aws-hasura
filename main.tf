@@ -307,7 +307,7 @@ locals {
   ecs_container_definitions = [
     {
       image       = "hasura/graphql-engine:${var.hasura_version_tag}"
-      name        = "hasura",
+      name        = var.hasura_unique_identifier,
       networkMode = "awsvpc",
 
       portMappings = [
