@@ -238,7 +238,8 @@ data "aws_iam_policy_document" "hasura_log_publishing" {
       "logs:PutLogEventsBatch",
     ]
 
-    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/${var.hasura_unique_identifier}:*"]
+    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/*:*"]
+    # resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/${var.hasura_unique_identifier}:*"]
   }
 }
 
