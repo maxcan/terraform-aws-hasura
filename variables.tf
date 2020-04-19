@@ -76,6 +76,12 @@ variable "rds_version" {
   description = "Postgres version to deploy on RDS. Default 10.5"
   default     = "10.5"
 }
+
+variable "rds_parameter_group_name" {
+  description = "RDS Parameter group name.  You must change this if you change the PG version. Default default.postgres10"
+  default     = "default.postgres10"
+}
+
 variable "az_count" {
   description = "How many AZ's to create in the VPC"
   default     = 2

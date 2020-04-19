@@ -189,7 +189,7 @@ resource "aws_db_instance" "hasura" {
   storage_encrypted      = false
   vpc_security_group_ids = [aws_security_group.hasura_rds.id]
   db_subnet_group_name   = aws_db_subnet_group.hasura.name
-  parameter_group_name   = "default.postgres10"
+  parameter_group_name   = var.rds_parameter_group_name
   multi_az               = var.multi_az
   storage_type           = "gp2"
   publicly_accessible    = false
