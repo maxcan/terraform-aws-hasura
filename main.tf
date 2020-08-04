@@ -389,7 +389,7 @@ resource "aws_ecs_service" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_s3_bucket" "hasura" {
-  bucket        = "hasura-${var.region}-${var.hasura_unique_identifier}-${var.domain}"
+  bucket        = "${var.hasura_unique_identifier}-alb-logs"
   acl           = "private"
   force_destroy = "true"
 }
@@ -439,7 +439,7 @@ resource "aws_alb" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_alb_target_group" "hasura" {
-  name        = "${var.hasura_unique_identifier}-alb"
+  name        = substr("alb-${var.hasura_unique_identifier}",0 ,32)
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = aws_vpc.hasura.id
