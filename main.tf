@@ -423,7 +423,8 @@ resource "aws_s3_bucket_policy" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_alb" "hasura" {
-  name            = "${var.hasura_unique_identifier}-alb"
+
+  name            = substr(replace(title(var.hasura_unique_identifier), "/[^A-Za-z0-9]/", ""), 0 ,32)
   subnets         = aws_subnet.hasura_public.*.id
   security_groups = [aws_security_group.hasura_alb.id]
 
@@ -439,7 +440,8 @@ resource "aws_alb" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_alb_target_group" "hasura" {
-  name        = substr("alb-${var.hasura_unique_identifier}",0 ,32)
+  name        = substr(replace(title(var.hasura_unique_identifier), "/[^A-Za-z0-9]/", ""), 0 ,32)
+
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = aws_vpc.hasura.id
