@@ -51,7 +51,7 @@ resource "aws_route53_record" "hasura_validation" {
 
 resource "aws_acm_certificate_validation" "hasura" {
   certificate_arn         = aws_acm_certificate.hasura.arn
-  validation_record_fqdns = aws_route53_record.hasura_validation.*.fqdn
+  validation_record_fqdns = [for record in aws_route53_record.hasura_validation : record.fqdn]
 }
 
 # -----------------------------------------------------------------------------
