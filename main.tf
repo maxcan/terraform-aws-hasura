@@ -4,6 +4,7 @@
 
 resource "aws_iam_service_linked_role" "ecs_service" {
   aws_service_name = "ecs.amazonaws.com"
+  custom_suffix    =   var.hasura_unique_identifier
   count            = var.create_iam_service_linked_role ? 1 : 0
 }
 
